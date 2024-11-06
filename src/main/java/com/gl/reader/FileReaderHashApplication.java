@@ -425,7 +425,7 @@ public class FileReaderHashApplication {
                     systemType = attributes[4];
                 }
                 logger.debug("CDR Line ----{}, {}, {}, {} , {}",  imei , imsi  , msisdn ,recordType  , systemType);
-                Book book = createBook(imei, imsi, msisdn, recordType, systemType, folder_name, file_name, event_time);
+            //    Book book = createBook(imei, imsi, msisdn, recordType, systemType, folder_name, file_name, event_time);
 
                 if ((imei.isEmpty() || imei.matches("^[0]*$"))) {
                     if (cdrImeiCheckMap.get("CDR_NULL_IMEI_CHECK").equalsIgnoreCase("true")) {
@@ -465,20 +465,7 @@ public class FileReaderHashApplication {
                     ierror++;
                     continue;
                 }
-
-
-
-//                if (!reportTypeSet.isEmpty()) { // set is empty
-//                    if (!reportTypeSet.contains(recordType)) {
-//                        line = br.readLine();
-//                        error++;
-//                        totalCount++;
-//                        ierror++;
-//                        itotalCount++;
-//                        continue;
-//                    }
-//                }
-                //    HashMap<String, HashMap<String, Book>> BookHashMap
+                Book book = createBook(imei, imsi, msisdn, recordType, systemType, folder_name, file_name, event_time);
 
                 if (BookHashMap.containsKey(book.getIMEI().length() > 14 ? book.getIMEI().substring(0, 14) : book.getIMEI())) {
                     if (!BookHashMap.get(book.getIMEI().length() > 14 ? book.getIMEI().substring(0, 14) : book.getIMEI()).containsKey(book.getMSISDN())) {
