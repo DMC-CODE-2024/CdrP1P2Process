@@ -57,10 +57,10 @@ public class  PropertiesReader {
     @Value("${SLEEP-TIME}")
     public Integer sleepTime;
 
-    @Value("${INPUT-LOCATION}")
+    @Value("${INPUTPATH}")
     public String inputLocation;
 
-    @Value("${OUTPUT-LOCATION}")
+    @Value("${OUTPUTPATH}")
     public String outputLocation;
 
     @Value("${ERROR-REPORT-FLAG}")

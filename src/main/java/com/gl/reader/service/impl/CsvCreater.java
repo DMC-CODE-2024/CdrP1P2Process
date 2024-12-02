@@ -37,6 +37,12 @@ public class CsvCreater {
         String errorPathTillCurrent = outputLocation + "/" + sourceName + "/" + folderName + "/error/" + year + "/" + month + "/" + day + "/";
 
         try {
+            if (errorFile.isEmpty()) {
+                logger.info("No record found,So no need to create Error File!!!" + errorFile.size());
+                return ;
+            }
+
+
             // rename file
             createNRenameFileIfExists (  errorPathTillCurrent ,  fileName);
             if (!errorFile.isEmpty()) {// optimise to not create folder
@@ -101,7 +107,6 @@ public class CsvCreater {
         int i = 1;
         try {
             createNRenameFileIfExists ( outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/", fileName);
-
             if (returnCount == 0) {
                 logger.info("inside non split block");
                 fileWriter = new FileWriter(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName);
@@ -163,7 +168,8 @@ public class CsvCreater {
                             // logger.info("count greater than split count: " + count);
                             if (Files.exists(Paths.get(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName))) {
                                 File sourceFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName);
-                                String newName = fileName + "_00" + i;
+                                String a=  String.format("%03d", i);
+                                String newName = fileName + "_" + a;
                                 i++;
                                 File destFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + newName);
                                 if (sourceFile.renameTo(destFile)) {

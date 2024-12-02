@@ -2,7 +2,7 @@ package com.gl.reader;
 
 import com.gl.reader.configuration.ConnectionConfiguration;
 import com.gl.reader.configuration.PropertiesReader;
- import com.gl.reader.dto.CdrFilePreProcessing;
+import com.gl.reader.dto.CdrFilePreProcessing;
 import com.gl.reader.dto.ModulesAudit;
 import com.gl.reader.dto.SysParam;
 import com.gl.reader.model.Book;
@@ -96,8 +96,9 @@ public class FileReaderHashApplication {
     public static String procesStart_timeStamp = null;
     public static Connection conn = null;
     static String attributeSplitor = null;
-   public static List<String> file_patterns = null;
+    public static List<String> file_patterns = null;
     static ConnectionConfiguration connectionConfiguration = null;
+
     public static void main(String[] args) {
         File file = null;
         int insertedKey = 0;
@@ -133,7 +134,7 @@ public class FileReaderHashApplication {
 
             long startexecutionTimeNew = new Date().getTime();
             if (!sourceName.contains("all")) {
-                file_patterns= getFilePatternByOperatorSource(conn,operatorName,sourceName);
+                file_patterns = getFilePatternByOperatorSource(conn, operatorName, sourceName);
             }
             if (!(ims_sources.contains(sourceName))) { // "sm_ims".equals(folderName)
                 reportTypeSet.addAll(propertiesReader.reportType);
@@ -271,7 +272,7 @@ public class FileReaderHashApplication {
                         Files.createDirectories(pathFile);
                         Files.move(Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + file.getName()),
                                 Paths.get(pathFile + "/" + file.getName()));
-                        logger.debug("File moved to {}" , pathFile);
+                        logger.debug("File moved to {}", pathFile);
                         processed++;
                         continue;
                     }
@@ -331,7 +332,7 @@ public class FileReaderHashApplication {
         }
     }
 
-      static boolean readBooksFromCSV(String fileName) {
+    static boolean readBooksFromCSV(String fileName) {
         logger.debug(" ReadBooksFrom CSV with fileName " + fileName);
         Path pathToFile = Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + fileName);
         String line = null;
@@ -424,8 +425,8 @@ public class FileReaderHashApplication {
                     recordType = attributes[3];
                     systemType = attributes[4];
                 }
-                logger.debug("CDR Line ----{}, {}, {}, {} , {}",  imei , imsi  , msisdn ,recordType  , systemType);
-            //    Book book = createBook(imei, imsi, msisdn, recordType, systemType, folder_name, file_name, event_time);
+                logger.debug("CDR Line ----{}, {}, {}, {} , {}", imei, imsi, msisdn, recordType, systemType);
+                //    Book book = createBook(imei, imsi, msisdn, recordType, systemType, folder_name, file_name, event_time);
 
                 if ((imei.isEmpty() || imei.matches("^[0]*$"))) {
                     if (cdrImeiCheckMap.get("CDR_NULL_IMEI_CHECK").equalsIgnoreCase("true")) {
@@ -491,7 +492,7 @@ public class FileReaderHashApplication {
             br.close();
         } catch (Exception e) {
             logger.error("Alert in  " + line + "Error: " + e + "in [" + Arrays.stream(e.getStackTrace()).filter(ste -> ste.getClassName().equals(FileReaderHashApplication.class.getName())).collect(Collectors.toList()).get(0) + "]");
-            raiseAlert( "alert006", Map.of("<e>", e.toString() + ". in file  " + file_name, "<process_name>", "CDR_pre_processor"), 0);
+            raiseAlert("alert006", Map.of("<e>", e.toString() + ". in file  " + file_name, "<process_name>", "CDR_pre_processor"), 0);
             return false;
         }
         return true;
@@ -499,17 +500,18 @@ public class FileReaderHashApplication {
 
 
     public static void moveFileToError(String fileName) throws IOException {
-        Path pathFile = Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile");
+        // Path pathFile = Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile");
+        Path pathFile = Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/");
         if (!Files.exists(pathFile)) {
             Files.createDirectories(pathFile);
             logger.info("Directory created");
         }
         // rename file
-        if (Files.exists(Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile/" + fileName))) {
+        if (Files.exists(Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + fileName))) {
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            File sourceFile = new File(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile/" + fileName);
+            File sourceFile = new File(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + fileName);
             String newName = fileName + "-" + sdf.format(timestamp);
-            File destFile = new File(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile/" + newName);
+            File destFile = new File(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + newName);
             if (sourceFile.renameTo(destFile)) {
                 logger.info("File renamed successfully");
             } else {
@@ -520,7 +522,7 @@ public class FileReaderHashApplication {
         Path temp = null;
         try {
             temp = Files.move(Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + fileName),
-                    Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile/" + fileName));
+                    Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + fileName));
         } catch (Exception e) {
             logger.warn(" File   " + fileName + " Not able to move ");
         }
