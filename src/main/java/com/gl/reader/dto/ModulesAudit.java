@@ -51,8 +51,10 @@ public class ModulesAudit {
         String exec_time = " TIMEDIFF(now() ,created_on) ";
         if (conn.toString().contains("oracle")) {
             long milliseconds = (new Date().getTime()) - executionStartTime;
-            String executionFinishTiime = (((milliseconds / 1000) / 60) / 60) + ":" + (((milliseconds / 1000) / 60) % 60) + ":" + ((milliseconds / 1000) % 60);
-            exec_time = " '" + executionFinishTiime + "' ";
+         //   String executionFinishTiime = (((milliseconds / 1000) / 60) / 60) + ":" + (((milliseconds / 1000) / 60) % 60) + ":" + ((milliseconds / 1000) % 60);
+           // exec_time = " '" + executionFinishTiime + "' ";
+
+            exec_time =  (milliseconds / 1000) +""  ;
         }
         try (Statement stmt = conn.createStatement()) {
             String query = "update   " + auddbName + ".modules_audit_trail set status_code='" + statusCode + "',status='" + status + "',error_message='" + errorMessage + "', count='" + numberOfRecord + "',"
