@@ -34,15 +34,12 @@ public class CsvCreater {
 
     public static void makeErrorCsv(String outputLocation, String sourceName, String folderName, String fileName , Set <Book>  errorFile) {
         FileWriter fileWriter = null;
-        String errorPathTillCurrent = outputLocation + "/" + sourceName + "/" + folderName + "/error/" + year + "/" + month + "/" + day + "/";
-
+        String errorPathTillCurrent = outputLocation + "/" + sourceName + "/" + folderName + "/"; // + year + "/" + month + "/" + day + "/"
         try {
             if (errorFile.isEmpty()) {
                 logger.info("No record found,So no need to create Error File!!!" + errorFile.size());
                 return ;
             }
-
-
             // rename file
             createNRenameFileIfExists (  errorPathTillCurrent ,  fileName);
             if (!errorFile.isEmpty()) {// optimise to not create folder
@@ -77,7 +74,7 @@ public class CsvCreater {
 
         } catch (Exception e) {
             logger.info("Error in CsvFileWriter for Error File!!!" + e);
-            Alert. raiseAlert("alert006", Map.of("<e>", e.toString() + " Not able to crete error CSV  ", "<process_name>", "CDR_pre_processor"), 0);
+            Alert. raiseAlert("alert006",  e.toString() );
         }
     }
 
@@ -106,10 +103,10 @@ public class CsvCreater {
         FileWriter fileWriter = null;
         int i = 1;
         try {
-            createNRenameFileIfExists ( outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/", fileName);
+            createNRenameFileIfExists ( outputLocation + "/" + sourceName + "/" + folderName + "/"  , fileName);
             if (returnCount == 0) {
                 logger.info("inside non split block");
-                fileWriter = new FileWriter(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName);
+                fileWriter = new FileWriter(outputLocation + "/" + sourceName + "/" + folderName + "/"  + fileName);
                 fileWriter.append(propertiesReader.fileHeader);
                 fileWriter.append(propertiesReader.newLineSeprator);
                 for (HashMap.Entry<String, HashMap<String, Book>> csvf : BookHashMap.entrySet()) {
@@ -138,7 +135,7 @@ public class CsvCreater {
             } else {
                 logger.info("inside split block");
                 int count = 0;
-                fileWriter = new FileWriter(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName);
+                fileWriter = new FileWriter(outputLocation + "/" + sourceName + "/" + folderName + "/" + fileName);
                 fileWriter.append(propertiesReader.fileHeader);
                 fileWriter.append(propertiesReader.newLineSeprator);
 
@@ -166,12 +163,12 @@ public class CsvCreater {
                             fileWriter.flush();
                         } else {
                             // logger.info("count greater than split count: " + count);
-                            if (Files.exists(Paths.get(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName))) {
-                                File sourceFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName);
+                            if (Files.exists(Paths.get(outputLocation + "/" + sourceName + "/" + folderName + "/" +  fileName))) {
+                                File sourceFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + fileName);
                                 String a=  String.format("%03d", i);
                                 String newName = fileName + "_" + a;
                                 i++;
-                                File destFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + newName);
+                                File destFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + newName);
                                 if (sourceFile.renameTo(destFile)) {
                                     logger.info("File split successfully: " + newName);
                                 } else {
@@ -179,7 +176,7 @@ public class CsvCreater {
                                 }
                             }
                             count = 0;
-                            fileWriter = new FileWriter(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName);
+                            fileWriter = new FileWriter(outputLocation + "/" + sourceName + "/" + folderName + "/" +  fileName);
                             fileWriter.append(propertiesReader.fileHeader);
                             fileWriter.append(propertiesReader.newLineSeprator);
                             fileWriter.append(String.valueOf(csvf3.getValue().getIMEI()));
@@ -203,10 +200,12 @@ public class CsvCreater {
                         }
                     }
                 }
-                if (Files.exists(Paths.get(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName))) {
-                    File sourceFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + fileName);
-                    String newName = fileName + "_00" + i++;
-                    File destFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" + "output/" + newName);
+                if (Files.exists(Paths.get(outputLocation + "/" + sourceName + "/" + folderName + "/" + fileName))) {
+                    File sourceFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" +  fileName);
+                    String a=  String.format("%03d", i);
+                    String newName = fileName + "_" + a;
+                     i++;
+                    File destFile = new File(outputLocation + "/" + sourceName + "/" + folderName + "/" +  newName);
                     if (sourceFile.renameTo(destFile)) {
                         logger.info("File split successfully: " + newName);
                     } else {
@@ -221,10 +220,7 @@ public class CsvCreater {
             e.printStackTrace(new PrintWriter(sw));
             String exceptionDetails = sw.toString();
             logger.info("Alert " + e.toString() + " || " + exceptionDetails);
-            Map<String, String> placeholderMapForAlert = new HashMap<String, String>();
-            placeholderMapForAlert.put("<e>", e.toString());
-            placeholderMapForAlert.put("<process_name>", "CDR_pre_processor");
-            Alert.raiseAlert("alert006", placeholderMapForAlert, 0);
+            Alert.raiseAlert("alert006", e.toString());
             logger.info("Alert [ALERT_006] is raised. So, doing nothing.");
         } finally {
             try {
@@ -232,10 +228,7 @@ public class CsvCreater {
                 fileWriter.close();
             } catch (IOException e) {
                 logger.info("Error while flushing/closing fileWriter !!!");
-                Map<String, String> placeholderMapForAlert = new HashMap<String, String>();
-                placeholderMapForAlert.put("<e>", e.toString());
-                placeholderMapForAlert.put("<process_name>", "CDR_pre_processor");
-                Alert.raiseAlert("alert006", placeholderMapForAlert, 0);
+               Alert.raiseAlert("alert006", e.toString());
                 logger.info("Alert [ALERT_006] is raised. So, doing nothing.");
             }
         }

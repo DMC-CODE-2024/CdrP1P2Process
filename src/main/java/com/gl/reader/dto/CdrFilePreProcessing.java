@@ -40,7 +40,7 @@ public class CdrFilePreProcessing {
             logger.info("Inserting into table  cdr _pre_processing  _report:: " + sql);
             stmt.executeUpdate(sql);
         } catch (Exception e) {
-            Alert.raiseAlert("alert006", Map.of("<e>", "not able to insert in cdr_file_pre_processing_detail " + e.toString() + ". in   ", "<process_name>", "CDR_pre_processor"), 0);
+            Alert.raiseAlert("alert006", "not able to insert in cdr_file_pre_processing_detail " + e.toString() );
             //      System.exit(0);
         }
     }

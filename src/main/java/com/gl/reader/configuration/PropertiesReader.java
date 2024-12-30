@@ -21,14 +21,8 @@ public class  PropertiesReader {
     @Value("${appdbName}")
     public String appdbName;
 
-    @Value("${repdbName}")
-    public String repdbName;
-
     @Value("${auddbName}")
     public String auddbName;
-
-    @Value("${oamdbName}")
-    public String oamdbName;
 
     @Value("${COMMA-DELIMITER}")
     public String commaDelimiter;
@@ -60,9 +54,6 @@ public class  PropertiesReader {
     @Value("${INPUTPATH}")
     public String inputLocation;
 
-    @Value("${OUTPUTPATH}")
-    public String outputLocation;
-
     @Value("${ERROR-REPORT-FLAG}")
     public String errorReportFlag;
 
@@ -71,8 +62,7 @@ public class  PropertiesReader {
 
     @Value("#{'${REPORT-TYPE}'.split(',')}")
     public Set<String> reportType;
-    
-    
+
     @Value("#{'${IMS-SOURCE}'.split(',')}")
     public List<String> imsSources;
 
@@ -90,4 +80,18 @@ public class  PropertiesReader {
 
     @Value("${ATTRIBUTE-SEPARATOR}")
     public String attributeSeperator;
+
+
+    @Value("${OUTPUTPATH}")
+    public String outputPath;
+    @Value("${ERRORPATH}")
+    public String errorPath;
+    @Value("${PROCESSEDPATH}")
+    public String  processedPath;
+
+    @Value("${eirs.alert.url}")
+    public String  alertUrl;
+
+
+
 }

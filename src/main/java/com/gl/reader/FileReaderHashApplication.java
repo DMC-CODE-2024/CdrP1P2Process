@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.Connection;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -69,7 +70,9 @@ public class FileReaderHashApplication {
     static long totalFileCount = 0;
     static long totalFileRecordsCount = 0;
     static String inputLocation;
-    static String outputLocation;
+    static String outputPath;
+    static String errorPath;
+    static String processedPath;
     static Long timeTaken;
     static Float Tps;
     static Integer returnCount;
@@ -79,6 +82,7 @@ public class FileReaderHashApplication {
     static Integer fileCount = 0;
     static Integer headCount = 0;
     public static String appdbName = null;
+    public static String alertUrl = null;
     public static String auddbName = null;
     static Set<Book> errorFile = new HashSet<>();
     static Set<String> reportTypeSet = new HashSet<>();
@@ -123,8 +127,11 @@ public class FileReaderHashApplication {
             value = propertiesReader.filesCount;  // FILES-COUNT-PER-REPORT=-1
             extension = propertiesReader.extension;
             sleep = propertiesReader.sleepTime;
-            inputLocation = propertiesReader.inputLocation.replace("${DATA_HOME}", System.getenv("DATA_HOME"));
-            outputLocation = propertiesReader.outputLocation.replace("${DATA_HOME}", System.getenv("DATA_HOME"));
+            inputLocation = propertiesReader.inputLocation.replace("${DATA_HOME}", System.getenv("DATA_HOME"))+"/";
+            outputPath = propertiesReader.outputPath.replace("${DATA_HOME}", System.getenv("DATA_HOME"))+"/";
+            errorPath = propertiesReader.errorPath.replace("${DATA_HOME}", System.getenv("DATA_HOME"))+"/";
+            processedPath = propertiesReader.processedPath.replace("${DATA_HOME}", System.getenv("DATA_HOME")) +"/";
+            alertUrl =propertiesReader.alertUrl;
             errorFlag = propertiesReader.errorReportFlag;
             returnCount = sourceName.contains("all") ? propertiesReader.rowCountForSplit : 0;
             servername = propertiesReader.servername;
@@ -182,16 +189,17 @@ public class FileReaderHashApplication {
                     Instant startTime = Instant.now(offsetClock);
                     String startTime1 = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
                     if (file.isFile() && !file.getName().endsWith(extension)) {
-                        eventTime = getArrivalTimeFromFilePattern(sourceName, file.getName());
+                       if (!sourceName.contains("all"))
+                            eventTime = getArrivalTimeFromFilePattern(sourceName, file.getName());
                         if ((!sourceName.contains("all")) && (eventTime == null)) {
                             logger.debug("File Move to Error Folder: III FileName: " + file.getName() + ", Date: " + DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss")
                                     + ", Start Time: " + startTime + ", End Time: " + Instant.now(offsetClock) + ", Time Taken: , Operator Name: " + operatorName + ", Source Name: " + sourceName + ", TPS: " + Tps + ", Error: " + ierror + ", inSet: " + iinSet + ", totalCount: " + itotalCount + ", duplicate: " + iduplicate + ", volume: " + inputOffset + ", tag: " + tag + ", EventTime Tag  is null");
-                            Path pathFolder = Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day);
+                            Path pathFolder = Paths.get(errorPath + "/" + operatorName + "/" + sourceName +"/" );
                             if (!Files.exists(pathFolder)) {
                                 Files.createDirectories(pathFolder);
                             }
                             Files.move(Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + file.getName()),
-                                    Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/" + file.getName()));
+                                    Paths.get(errorPath + "/" + operatorName + "/" + sourceName +  "/" + file.getName())  , StandardCopyOption.REPLACE_EXISTING  );
 
                             CdrFilePreProcessing.insertReportv2("I", file.getName(), itotalCount, ierror, iduplicate, iinSet,
                                     startTime1.toString(), Instant.now(offsetClock).toString(), 0.0f, Tps, operatorName, sourceName, inputOffset, tag, 1, headCount, servername);
@@ -207,10 +215,10 @@ public class FileReaderHashApplication {
                                 moveFileToError(fileName);
                                 continue;
                             }
-                            createNRenameFileIfExists(outputLocation + "/" + operatorName + "/" + sourceName + "/processed/" + year + "/" + month + "/" + day, fileName);
+                            createNRenameFileIfExists(processedPath + "/" + operatorName + "/" + sourceName + "/" + year + "/" + month + "/" + day, fileName);
                             // move file
-                            Path temp = Files.move(Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + file.getName()),
-                                    Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/processed/" + year + "/" + month + "/" + day + "/" + fileName));
+                             Files.move(Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + file.getName()),
+                                    Paths.get(processedPath + "/" + operatorName + "/" + sourceName + "/" + year + "/" + month + "/" + day + "/" + fileName) ,  StandardCopyOption.REPLACE_EXISTING );
                             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
                             LocalDateTime now = LocalDateTime.now();
                             Instant endTime = Instant.now(offsetClock);
@@ -235,7 +243,7 @@ public class FileReaderHashApplication {
                             processed++;
                         } else {
                             logger.info("Output File Report Inside {if(nothing logs)remove block} :Value : " + filRetriver + "  Processed : " + processed);
-                            makeCsv(outputLocation, operatorName, sourceName, fileName, returnCount);
+                            makeCsv(outputPath, operatorName, sourceName, fileName, returnCount);
                             DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
                             LocalDateTime now = LocalDateTime.now();
                             Instant endTimeOutput = Instant.now(offsetClock);
@@ -260,7 +268,7 @@ public class FileReaderHashApplication {
                             fileCount = 0;
                             processed = 0;
                             BookHashMap.clear();
-                            makeErrorCsv(outputLocation, operatorName, sourceName, fileName, errorFile);//makeErrorCsv();
+                            makeErrorCsv(errorPath, operatorName, sourceName, fileName, errorFile);//makeErrorCsv();
                             logger.debug("Error Csv Created In FileName: " + fileName + ", Date: " + dtf.format(now) + ", Error: " + errorDuplicate + ", inFile: " + inErrorSet);
                             errorDuplicate = 0;
                             inErrorSet = 0;
@@ -268,10 +276,10 @@ public class FileReaderHashApplication {
                         }
                     } else {   // file Extention Check
                         logger.info("No file or Incorrect file format present {}  moving file to error " + file.getName());
-                        Path pathFile = Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile/");
+                        Path pathFile = Paths.get(errorPath + "/" + operatorName + "/" + sourceName + "/"  );
                         Files.createDirectories(pathFile);
                         Files.move(Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + file.getName()),
-                                Paths.get(pathFile + "/" + file.getName()));
+                                Paths.get(pathFile + "/" + file.getName())  , StandardCopyOption.REPLACE_EXISTING );
                         logger.debug("File moved to {}", pathFile);
                         processed++;
                         continue;
@@ -281,7 +289,7 @@ public class FileReaderHashApplication {
                 logger.debug("End Loop-- " + "Processed- : " + processed + "Value- : " + filRetriver);
                 if (processed >= filRetriver) {  //processed <= value
                     logger.debug("Final Processed is more than Retriver ***** *****  To check if working ");
-                    makeCsv(outputLocation, operatorName, sourceName, fileName, returnCount);
+                    makeCsv(outputPath, operatorName, sourceName, fileName, returnCount);
                     DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
                     LocalDateTime now = LocalDateTime.now();
                     Instant endTimeOutput = Instant.now(offsetClock);
@@ -311,7 +319,7 @@ public class FileReaderHashApplication {
                     fileCount = 0;
                     processed = 0;
                     BookHashMap.clear();
-                    makeErrorCsv(outputLocation, operatorName, sourceName, fileName, errorFile);//makeErrorCsv();//
+                    makeErrorCsv(errorPath, operatorName, sourceName, fileName, errorFile);//makeErrorCsv();//
                     logger.info("Error Csv Created Out FileName: " + fileName + ", Date: " + dtf.format(now) + ", Error: " + errorDuplicate + ", inFile: " + inErrorSet);
                     errorDuplicate = 0;
                     inErrorSet = 0;
@@ -321,7 +329,7 @@ public class FileReaderHashApplication {
 
         } catch (Exception e) {
             logger.error(e + "in [" + Arrays.stream(e.getStackTrace()).filter(ste -> ste.getClassName().equals(FileReaderHashApplication.class.getName())).collect(Collectors.toList()).get(0) + "]");
-            raiseAlert("alert006", Map.of("<e>", e.toString() + ". in file  ", "<process_name>", "CDR_pre_processor"), 0);
+            raiseAlert("alert006", e.toString() );
             updateModuleAudit(conn, 500, "Failure", e.getLocalizedMessage(), insertedKey, startexecutionTime, totalFileRecordsCount, totalFileCount);//numberOfRecord ,long totalFileCount
         } finally {
             try {
@@ -492,7 +500,7 @@ public class FileReaderHashApplication {
             br.close();
         } catch (Exception e) {
             logger.error("Alert in  " + line + "Error: " + e + "in [" + Arrays.stream(e.getStackTrace()).filter(ste -> ste.getClassName().equals(FileReaderHashApplication.class.getName())).collect(Collectors.toList()).get(0) + "]");
-            raiseAlert("alert006", Map.of("<e>", e.toString() + ". in file  " + file_name, "<process_name>", "CDR_pre_processor"), 0);
+            raiseAlert("alert006", e.toString());
             return false;
         }
         return true;
@@ -501,17 +509,17 @@ public class FileReaderHashApplication {
 
     public static void moveFileToError(String fileName) throws IOException {
         // Path pathFile = Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + year + "/" + month + "/" + day + "/errorFile");
-        Path pathFile = Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/");
+        Path pathFile = Paths.get(errorPath + "/" + operatorName + "/" + sourceName + "/");
         if (!Files.exists(pathFile)) {
             Files.createDirectories(pathFile);
             logger.info("Directory created");
         }
         // rename file
-        if (Files.exists(Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + fileName))) {
+        if (Files.exists(Paths.get(errorPath + "/" + operatorName + "/" + sourceName + "/" + fileName))) {
             Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-            File sourceFile = new File(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + fileName);
+            File sourceFile = new File(errorPath + "/" + operatorName + "/" + sourceName + "/" + fileName);
             String newName = fileName + "-" + sdf.format(timestamp);
-            File destFile = new File(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + newName);
+            File destFile = new File(errorPath + "/" + operatorName + "/" + sourceName + "/" + newName);
             if (sourceFile.renameTo(destFile)) {
                 logger.info("File renamed successfully");
             } else {
@@ -522,7 +530,7 @@ public class FileReaderHashApplication {
         Path temp = null;
         try {
             temp = Files.move(Paths.get(inputLocation + "/" + operatorName + "/" + sourceName + "/" + fileName),
-                    Paths.get(outputLocation + "/" + operatorName + "/" + sourceName + "/error/" + fileName));
+                    Paths.get(errorPath + "/" + operatorName + "/" + sourceName + "/" + fileName));
         } catch (Exception e) {
             logger.warn(" File   " + fileName + " Not able to move ");
         }

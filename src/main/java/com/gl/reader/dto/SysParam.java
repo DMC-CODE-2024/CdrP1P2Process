@@ -31,7 +31,7 @@ public class SysParam {
             }
         } catch (Exception e) {
             logger.error("Not able to access details from sys_param " + e);
-            Alert.raiseAlert( "alert006", Map.of("<e>", "not able to  access details from sys_param " + e.toString() + ". in   ", "<process_name>", "CDR_pre_processor"), 0);
+            Alert.raiseAlert( "alert006",  "not able to  access details from sys_param " + e.toString() );
             System.exit(0);
         }
         return cdrImeiCheckMap;
@@ -50,7 +50,7 @@ public class SysParam {
             return Arrays.asList(response.split(","));
         } catch (Exception e) {
             logger.error("Not able to access details from sys_param " + e);
-            Alert.raiseAlert( "alert006", Map.of("<e>", "file pattern not access " + e.toString() + ". in   ", "<process_name>", "CDR_pre_processor"), 0);
+            Alert.raiseAlert( "alert006", "file pattern not access " + e);
             System.exit(0);
         }
         return null;
