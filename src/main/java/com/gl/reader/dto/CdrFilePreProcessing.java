@@ -5,7 +5,6 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Statement;
-import java.util.Map;
 
 import static com.gl.reader.FileReaderHashApplication.*;
 
@@ -17,6 +16,8 @@ public class CdrFilePreProcessing {
                                       Long totalDuplicateRecords, Long totalOutputRecords, String startTime, String endTime, Float timeTaken,
                                       Float tps, String operatorName, String sourceName, long volume, String tag, Integer FileCount,
                                       Integer headCount, String servername) {
+        if (!sourceName.contains("all"))
+            totalRecords -= 1;
         try (Statement stmt = conn.createStatement();) {
             endTime = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
             if (fileType.equalsIgnoreCase("O")) {
@@ -40,7 +41,7 @@ public class CdrFilePreProcessing {
             logger.info("Inserting into table  cdr _pre_processing  _report:: " + sql);
             stmt.executeUpdate(sql);
         } catch (Exception e) {
-            Alert.raiseAlert("alert006", "not able to insert in cdr_file_pre_processing_detail " + e.toString() );
+            Alert.raiseAlert("alert006", "not able to insert in cdr_file_pre_processing_detail " + e.toString());
             //      System.exit(0);
         }
     }
