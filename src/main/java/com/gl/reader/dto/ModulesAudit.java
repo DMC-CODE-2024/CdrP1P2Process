@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.Date;
 
 import static com.gl.reader.FileReaderHashApplication.auddbName;
+import static com.gl.reader.FileReaderHashApplication.sourceName;
 
 @Repository
 public class ModulesAudit {
@@ -49,7 +50,9 @@ public class ModulesAudit {
 
     public static void updateModuleAudit(Connection conn, int statusCode, String status, String errorMessage, int id, long executionStartTime, long numberOfRecord, long totalFileCount) {
          long milliseconds = (new Date().getTime()) - executionStartTime;
-       
+            if(! sourceName.contains("all"))
+             numberOfRecord =-1;
+        
        String exec_time =  (milliseconds / 1000) +""  ;
         try (Statement stmt = conn.createStatement()) {
             String query = "update   " + auddbName + ".modules_audit_trail set status_code='" + statusCode + "',status='" + status + "',error_message='" + errorMessage + "', count='" + numberOfRecord + "',"
