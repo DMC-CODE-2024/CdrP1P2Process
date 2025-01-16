@@ -61,7 +61,7 @@ public class FileReaderHashApplication {
     static String extension;
     static String servername;
     static Integer sleep;
-    static String sourceName;
+   public static String sourceName;
     static String operatorName;
     static String eventTime;
     static String errorFlag;
