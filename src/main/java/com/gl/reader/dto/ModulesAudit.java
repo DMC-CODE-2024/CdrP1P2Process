@@ -50,8 +50,8 @@ public class ModulesAudit {
 
     public static void updateModuleAudit(Connection conn, int statusCode, String status, String errorMessage, int id, long executionStartTime, long numberOfRecord, long totalFileCount) {
          long milliseconds = (new Date().getTime()) - executionStartTime;
-            if(! sourceName.contains("all"))
-             numberOfRecord =-1;
+            if(! sourceName.contains("all") && numberOfRecord != 0)
+             numberOfRecord =numberOfRecord-1;
         
        String exec_time =  (milliseconds / 1000) +""  ;
         try (Statement stmt = conn.createStatement()) {
